@@ -1,0 +1,20 @@
+package com.example.camelspringboot.routes.fileprocessor;
+
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.springframework.stereotype.Component;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+@Component
+public class FilenameDateAppendProcessor implements Processor {
+    @Override
+    public void process(Exchange exchange) {
+        String originalFileName = exchange.getIn().getHeader(Exchange.FILE_NAME, String.class);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String changedFileName = dateFormat.format(new Date()) + originalFileName;
+        exchange.getIn().setHeader(Exchange.FILE_NAME, changedFileName);
+    }
+}
