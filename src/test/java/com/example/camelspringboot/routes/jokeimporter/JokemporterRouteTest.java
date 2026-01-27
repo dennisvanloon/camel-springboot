@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 @CamelSpringBootTest
 @SpringBootTest
 @UseAdviceWith
-class UserImportRouteTest {
+class JokemporterRouteTest {
 
     @Autowired
     CamelContext camelContext;
@@ -32,18 +32,19 @@ class UserImportRouteTest {
     MockEndpoint apiMock;
 
     private final String createTableStament = """
-            CREATE TABLE IF NOT EXISTS USERS (
-                id VARCHAR(16) PRIMARY KEY,
-                name VARCHAR(128),
-                email VARCHAR(128)
+            CREATE TABLE IF NOT EXISTS JOKES (
+                id  INT PRIMARY KEY,
+                type VARCHAR(128),
+                setup VARCHAR(128),
+                punchline VARCHAR(128)
             );""";
 
     @BeforeEach
     void setup() throws Exception {
         dataSource.getConnection().createStatement().execute(createTableStament);
-        AdviceWith.adviceWith(camelContext, "user-import-route", a -> {
+        AdviceWith.adviceWith(camelContext, "joke-importer-route", a -> {
             a.replaceFromWith("direct:start");
-            a.weaveByToUri("https://api.example.com/*")
+            a.weaveByToUri("https://official-joke-api.appspot.com*")
                 .replace()
                 .to("mock:api");
         });
@@ -53,22 +54,26 @@ class UserImportRouteTest {
     @Test
     void shouldFetchUsersAndInsertIntoDatabase() throws Exception {
         String mockApiResponse = """
-            [
-              { "id": 1, "name": "Alice", "email": "alice@test.com" },
-              { "id": 2, "name": "Bob", "email": "bob@test.com" }
-            ]
+              {
+                "type": "general",
+                "setup": "Where do hamburgers go to dance?",
+                "punchline":"The meat-ball.",
+                "id":285
+              }
             """;
 
         apiMock.whenAnyExchangeReceived(e ->
                 e.getMessage().setBody(mockApiResponse)
         );
-        apiMock.expectedMessageCount(1);
+        apiMock.expectedMessageCount(2);
 
         // Trigger route
+        producerTemplate.sendBody("direct:start", null);
         producerTemplate.sendBody("direct:start", null);
 
         // Assertions
         MockEndpoint.assertIsSatisfied(camelContext);
+        //TODO check db
     }
 }
 
