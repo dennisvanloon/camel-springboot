@@ -7,14 +7,18 @@ import org.springframework.stereotype.Component;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static org.apache.camel.Exchange.FILE_NAME;
+
 @Component
 public class FilenameDateAppendProcessor implements Processor {
+
     @Override
     public void process(Exchange exchange) {
-        String originalFileName = exchange.getIn().getHeader(Exchange.FILE_NAME, String.class);
+        var originalFileName = exchange.getIn().getHeader(FILE_NAME, String.class);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String changedFileName = dateFormat.format(new Date()) + originalFileName;
-        exchange.getIn().setHeader(Exchange.FILE_NAME, changedFileName);
+        var dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        var changedFileName = dateFormat.format(new Date()) + originalFileName;
+        exchange.getIn().setHeader(FILE_NAME, changedFileName);
     }
+
 }

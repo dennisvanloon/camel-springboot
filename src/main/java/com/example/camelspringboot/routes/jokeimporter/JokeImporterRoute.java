@@ -2,24 +2,34 @@ package com.example.camelspringboot.routes.jokeimporter;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import static org.apache.camel.model.dataformat.JsonLibrary.Jackson;
 
 @Component
 public class JokeImporterRoute extends RouteBuilder {
 
+    @Value("${app.jokeimporter.merge_query}")
+    private String mergeQuery;
+
     @Override
     public void configure() {
 
-        from("timer:jokeImportTimer?period=60000")
+        from("timer:jokeImportTimer?period=10000")
             .routeId("joke-importer-route")
             .to("https://official-joke-api.appspot.com/random_joke?httpMethod=GET")
-            .unmarshal().json(JsonLibrary.Jackson, Joke.class)
+            .unmarshal().json(Jackson, Joke.class)
             .process(exchange -> {
-                Joke joke = exchange.getMessage().getBody(Joke.class);
-                exchange.getMessage().setBody(
-                            String.format("MERGE INTO jokes (id, type, setup, punchline) VALUES ('%d', '%s', '%s', '%s')",
-                                    joke.getId(), joke.getType(), joke.getSetup(), joke.getPunchline()));
+                var joke = exchange.getMessage().getBody(Joke.class);
+                var query = String.format(mergeQuery,
+                        joke.getId(),
+                        joke.getType(),
+                        joke.getSetup().replace("'", "''"),
+                        joke.getPunchline().replace("'", "''"));
+                exchange.getMessage().setBody(query);
             })
+            .log("Executing query: ${body}")
             .to("jdbc:datasource");
     }
 }

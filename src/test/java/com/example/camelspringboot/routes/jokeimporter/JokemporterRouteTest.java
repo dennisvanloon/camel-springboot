@@ -14,6 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.sql.DataSource;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @CamelSpringBootTest
 @SpringBootTest
 @UseAdviceWith
@@ -73,7 +75,13 @@ class JokemporterRouteTest {
 
         // Assertions
         MockEndpoint.assertIsSatisfied(camelContext);
-        //TODO check db
+        var resultSet = dataSource.getConnection().createStatement().executeQuery("select * from jokes");
+        assertTrue(resultSet.next());
+        assertEquals(285, resultSet.getInt("id"));
+        assertEquals("general", resultSet.getString("type"));
+        assertEquals("Where do hamburgers go to dance?", resultSet.getString("setup"));
+        assertEquals("The meat-ball.", resultSet.getString("punchline"));
+        assertFalse(resultSet.next());
     }
 }
 
