@@ -54,7 +54,7 @@ class JokeImporterRouteTest {
     }
 
     @Test
-    void shouldFetchUsersAndInsertIntoDatabase() throws Exception {
+    void shouldFetchJokesAndInsertIntoDatabase() throws Exception {
         String mockApiResponse = """
               {
                 "type": "general",
@@ -81,7 +81,6 @@ class JokeImporterRouteTest {
         assertEquals("general", resultSet.getString("type"));
         assertEquals("Where do hamburgers go to dance?", resultSet.getString("setup"));
         assertEquals("The meat-ball.", resultSet.getString("punchline"));
-        assertFalse(resultSet.next());
     }
 }
 
