@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @CamelSpringBootTest
 @SpringBootTest
 @UseAdviceWith
-class JokemporterRouteTest {
+class JokeImporterRouteTest {
 
     @Autowired
     CamelContext camelContext;
