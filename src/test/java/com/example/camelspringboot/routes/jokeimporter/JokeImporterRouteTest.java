@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @CamelSpringBootTest
 @SpringBootTest
-@UseAdviceWith
 class JokeImporterRouteTest {
 
     @Autowired
@@ -44,12 +43,6 @@ class JokeImporterRouteTest {
     @BeforeEach
     void setup() throws Exception {
         dataSource.getConnection().createStatement().execute(createTableStament);
-        AdviceWith.adviceWith(camelContext, "joke-importer-route", a -> {
-            a.weaveByToUri("https://official-joke-api.appspot.com*")
-                .replace()
-                .to("mock:api");
-        });
-        camelContext.start();
     }
 
     @Test
@@ -68,7 +61,6 @@ class JokeImporterRouteTest {
         );
         apiMock.expectedMessageCount(2);
 
-        // Trigger route
         producerTemplate.sendBody("direct:start", null);
         producerTemplate.sendBody("direct:start", null);
 

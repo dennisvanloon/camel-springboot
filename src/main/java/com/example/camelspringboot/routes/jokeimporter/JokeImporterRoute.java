@@ -13,6 +13,9 @@ public class JokeImporterRoute extends RouteBuilder {
     @Value("${app.jokeimporter.from}")
     private String from;
 
+    @Value("${app.jokeimporter.joke_endpoint}")
+    private String jokeEndpoint;
+
     @Value("${app.jokeimporter.merge_query}")
     private String mergeQuery;
 
@@ -21,7 +24,7 @@ public class JokeImporterRoute extends RouteBuilder {
 
         from(from)
             .routeId("joke-importer-route")
-            .to("https://official-joke-api.appspot.com/random_joke?httpMethod=GET")
+            .to(jokeEndpoint)
             .unmarshal().json(Jackson, Joke.class)
             .process(exchange -> {
                 var joke = exchange.getMessage().getBody(Joke.class);
