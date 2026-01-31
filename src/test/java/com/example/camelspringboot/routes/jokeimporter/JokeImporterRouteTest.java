@@ -45,7 +45,6 @@ class JokeImporterRouteTest {
     void setup() throws Exception {
         dataSource.getConnection().createStatement().execute(createTableStament);
         AdviceWith.adviceWith(camelContext, "joke-importer-route", a -> {
-            a.replaceFromWith("direct:start");
             a.weaveByToUri("https://official-joke-api.appspot.com*")
                 .replace()
                 .to("mock:api");

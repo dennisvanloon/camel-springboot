@@ -10,13 +10,16 @@ import static org.apache.camel.model.dataformat.JsonLibrary.Jackson;
 @Component
 public class JokeImporterRoute extends RouteBuilder {
 
+    @Value("${app.jokeimporter.from}")
+    private String from;
+
     @Value("${app.jokeimporter.merge_query}")
     private String mergeQuery;
 
     @Override
     public void configure() {
 
-        from("timer:jokeImportTimer?period=10000")
+        from(from)
             .routeId("joke-importer-route")
             .to("https://official-joke-api.appspot.com/random_joke?httpMethod=GET")
             .unmarshal().json(Jackson, Joke.class)
