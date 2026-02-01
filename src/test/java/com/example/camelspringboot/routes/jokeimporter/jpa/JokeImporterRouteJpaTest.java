@@ -1,0 +1,63 @@
+package com.example.camelspringboot.routes.jokeimporter.jpa;
+
+import org.apache.camel.CamelContext;
+import org.apache.camel.EndpointInject;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import javax.sql.DataSource;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@CamelSpringBootTest
+@SpringBootTest
+class JokeImporterRouteJpaTest {
+
+    @Autowired
+    CamelContext camelContext;
+
+    @Autowired
+    DataSource dataSource;
+
+    @Autowired
+    ProducerTemplate producerTemplate;
+
+    @EndpointInject("mock:apiJpa")
+    MockEndpoint apiMock;
+
+    @Test
+    void shouldFetchJokesAndInsertIntoDatabase() throws Exception {
+        String mockApiResponse = """
+              {
+                "type": "general",
+                "setup": "Where do hamburgers go to dance?",
+                "punchline":"The meat-ball.",
+                "id":285
+              }
+            """;
+
+        apiMock.whenAnyExchangeReceived(e ->
+                e.getMessage().setBody(mockApiResponse)
+        );
+        apiMock.expectedMessageCount(2);
+
+        producerTemplate.sendBody("direct:startJpa", null);
+        producerTemplate.sendBody("direct:startJpa", null);
+
+        // Assertions
+        MockEndpoint.assertIsSatisfied(camelContext);
+        var resultSet = dataSource.getConnection().createStatement().executeQuery("select * from jokes");
+        assertTrue(resultSet.next());
+        assertEquals(285, resultSet.getInt("id"));
+        assertEquals("general", resultSet.getString("type"));
+        assertEquals("Where do hamburgers go to dance?", resultSet.getString("setup"));
+        assertEquals("The meat-ball.", resultSet.getString("punchline"));
+        assertFalse(resultSet.next());
+    }
+}
+
