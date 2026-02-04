@@ -23,6 +23,11 @@ public class JokeImporterRouteJpa extends RouteBuilder {
 
     @Override
     public void configure() {
+        onException(Exception.class)
+            .handled(true)
+            .log("Failed to save joke: ${exception.message}")
+            .to("file:/tmp/failed-jokes?fileName=joke-${date:now:yyyyMMdd-HHmmss}.json");
+
         from(from)
             .routeId("joke-importer-route-jpa")
             .to(jokeEndpoint)
